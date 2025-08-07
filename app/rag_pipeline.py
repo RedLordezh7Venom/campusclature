@@ -1,20 +1,19 @@
-from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores import FAISS
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationSummaryMemory
 from langchain.prompts import PromptTemplate
-from langchain.chat_models import ChatOpenAI
 from langchain_groq import ChatGroq
 import os
 from dotenv import load_dotenv
 
-from app.config import EMBEDDING_MODEL, CHROMA_DIR
+from app.config import EMBEDDING_MODEL, FAISS_DIR
 from app.pdf_loader import load_and_split_pdf
 
 # --- CampusBuddy Custom Prompt ---
 prompt_template = """
 You are CampusBuddy — a witty, emotionally aware AI who acts like a chill best friend for students. Your mission is to help, comfort, and guide users through their academic, emotional, and daily ups and downs — just like a real buddy would.
 
-Your style is conversational, supportive, and emotionally intelligent. If the user uses Hindi or Hinglish, always reply in Hinglish. Match their language casually — no English-only replies unless the user is formal. Use emojis, humor, slang, and empathy to match the user's vibe. Always sound human — never robotic or corporate.
+Your style is conversational, supportive, and emotionally intelligent. If the user uses Hindi or Hinglish, always reply in Hinglish. Match their language casually — no English-only replies unless the user is formal. Use emojis, humor, slang, and empathy to match the user’s vibe. Always sound human — never robotic or corporate.
 
 CRITICAL COURSE RECOMMENDATION LOGIC:
 
@@ -37,28 +36,6 @@ CRITICAL COURSE RECOMMENDATION LOGIC:
    - NEVER repeat the same course recommendations from chat history
    - Pick different courses than previously suggested
    - Always provide the actual course link from context
-CRITICAL RELEVANCE RULE:
-Before recommending ANY course, you MUST check if it's actually relevant to what the user asked for.
-- If user asks for "vectors" and you get "English" courses, acknowledge honestly: "Yaar vectors ka direct course nahi hai mere paas 😅"
-- NEVER make up fake connections between unrelated subjects
-- NEVER claim an English course has vector content if it doesn't
-- Be honest about what courses you actually have
-
-COURSE RECOMMENDATION LOGIC:
-1. Check if retrieved courses are genuinely relevant to user's topic
-2. If relevant courses found: Provide 1 course with link
-3. If NO relevant courses: Say honestly "Direct course nahi hai mere paas, but ye general course hai jo help kar sakta hai: [most related one]"
-4. NEVER fabricate course content descriptions
-
-Your style remains conversational, supportive, and emotionally intelligent. If user uses Hindi/Hinglish, reply in Hinglish.
-
-Examples of HONEST responses:
-- "Yaar vectors ka course mere paas nahi hai, but ye math course dekh sakta hai: [link]"
-- "Physics ka direct course toh nahi hai, but ye science course kaam aa sakta hai: [link]"
-
-NEVER say things like:
-- "English course mein vectors hain" (if it's just an English course)
-- "3D applications hain isमें" (if you don't know this for sure)
 
 RESPONSE PATTERNS:
 
@@ -116,7 +93,7 @@ Context (Available Courses):
 User's Question:
 {question}
 
-CampusBuddy's Response (Remember to check what you've already suggested in chat history before recommending):
+CampusBuddy's Response (Remember to check what you've already suggested in chat history, if so, suggest a different course not the same again!!! before recommending):
 """
 load_dotenv()
 api_key = os.getenv("GROQ_KEY")
@@ -125,23 +102,36 @@ prompt = PromptTemplate(input_variables=["context", "question"], template=prompt
 # --- Step 1: Load + Embed PDF ---
 def ingest_pdf(pdf_path: str):
     docs = load_and_split_pdf(pdf_path)
-    vectordb = Chroma.from_documents(
+    vectordb = FAISS.from_documents(
         documents=docs,
-        embedding=EMBEDDING_MODEL,
-        persist_directory=CHROMA_DIR
+        embedding=EMBEDDING_MODEL
     )
-    vectordb.persist()
+    vectordb.save_local(FAISS_DIR)
 
 # --- Step 2: RAG chain using OpenRouter GPT-4o + Summary Memory ---
-def get_qa_chain():
-    vectordb = Chroma(persist_directory=CHROMA_DIR, embedding_function=EMBEDDING_MODEL)
-    retriever = vectordb.as_retriever(search_kwargs={"k":6})
 
+def get_qa_chain():
+    vectordb = FAISS.load_local(FAISS_DIR, EMBEDDING_MODEL, allow_dangerous_deserialization=True)
+    # Try different search strategies
+    retriever = vectordb.as_retriever(
+        search_type="mmr",  # Maximal Marginal Relevance for diversity
+        search_kwargs={
+            "k": 10,  # Get more results
+            "fetch_k": 20,  # Fetch more before filtering
+            "lambda_mult": 0.7
+        }
+    )
+    def debug_retriever(query):
+        docs = retriever.get_relevant_documents(query)
+        print(f"Query: {query}")
+        for i, doc in enumerate(docs):
+            print(f"Doc {i}: {doc.page_content[:100]}...")
+        return docs
     llm = ChatGroq(
     api_key=api_key,
     model="moonshotai/kimi-k2-instruct",
     max_tokens=512,  # Add this line to stay within limits
-    temperature = 0.8,
+    temperature = 0.6,
 )
 
     memory = ConversationSummaryMemory(
