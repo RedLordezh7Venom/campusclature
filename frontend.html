@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusBuddy</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f7f7fa; margin: 0; padding: 0; }
+        .container { max-width: 500px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px #0001; padding: 32px; }
+        h1 { text-align: center; color: #4a4a8a; }
+        .section { margin-bottom: 24px; }
+        label { font-weight: bold; display: block; margin-bottom: 8px; }
+        input[type="file"] { margin-bottom: 12px; }
+        textarea, input[type="text"] { width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #ccc; margin-bottom: 12px; }
+        button { background: #4a4a8a; color: #fff; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        button:disabled { background: #aaa; }
+        .answer { background: #e7e7ff; border-radius: 5px; padding: 12px; margin-top: 12px; }
+        .loading { color: #4a4a8a; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CampusBuddy</h1>
+        <div class="section">
+            <form id="pdfForm">
+                <label for="pdfInput">Upload PDF:</label>
+                <input type="file" id="pdfInput" name="pdf" accept="application/pdf" required>
+                <button type="submit">Upload & Index</button>
+            </form>
+            <div id="uploadMsg"></div>
+        </div>
+        <div class="section">
+            <form id="askForm">
+                <label for="questionInput">Ask a Question:</label>
+                <input type="text" id="questionInput" name="question" placeholder="Type your question..." required>
+                <button type="submit">Ask</button>
+            </form>
+            <div id="answerBox"></div>
+        </div>
+    </div>
+    <script>
+        const pdfForm = document.getElementById('pdfForm');
+        const askForm = document.getElementById('askForm');
+        const uploadMsg = document.getElementById('uploadMsg');
+        const answerBox = document.getElementById('answerBox');
+        const API_BASE_URL = 'http://127.0.0.1:8000'; // Define base URL for API calls
+
+        pdfForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            uploadMsg.textContent = '';
+            const fileInput = document.getElementById('pdfInput');
+            if (!fileInput.files.length) {
+                uploadMsg.textContent = 'Please select a PDF file.';
+                return;
+            }
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            pdfForm.querySelector('button').disabled = true;
+            uploadMsg.textContent = 'Uploading and indexing...';
+            try {
+                const res = await fetch(`${API_BASE_URL}/upload_pdf/`, { // Use template literal for URL
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    uploadMsg.textContent = data.message || 'Upload complete.';
+                } else {
+                    uploadMsg.textContent = `Upload failed: ${data.error || 'Unknown error'}`;
+                }
+            } catch (err) {
+                console.error('Upload error:', err);
+                uploadMsg.textContent = 'Upload failed due to network or server error.';
+            }
+            pdfForm.querySelector('button').disabled = false;
+        });
+
+        askForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            answerBox.innerHTML = '<div class="loading">Thinking...</div>';
+            const questionInput = document.getElementById('questionInput');
+            const question = questionInput.value.trim();
+            if (!question) {
+                answerBox.innerHTML = '<div class="answer">Please enter a question.</div>';
+                return;
+            }
+            askForm.querySelector('button').disabled = true;
+            try {
+                const res = await fetch(`${API_BASE_URL}/ask/`, { // Use template literal for URL
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: question })
+                });
+                const data = await res.json();
+                if (res.ok && data.answer) {
+                    answerBox.innerHTML = `<div class="answer">${data.answer}</div>`;
+                } else {
+                    answerBox.innerHTML = `<div class="answer">${data.error || 'No answer or an error occurred.'}</div>`;
+                }
+            } catch (err) {
+                console.error('Ask question error:', err);
+                answerBox.innerHTML = '<div class="answer">Error getting answer due to network or server error.</div>';
+            }
+            askForm.querySelector('button').disabled = false;
+        });
+    </script>
+</body>
+</html>

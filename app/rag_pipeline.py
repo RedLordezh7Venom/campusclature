@@ -1,8 +1,11 @@
-from langchain.vectorstores import Chroma
+from langchain_community.vectorstores import Chroma
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationSummaryMemory
 from langchain.prompts import PromptTemplate
 from langchain.chat_models import ChatOpenAI
+from langchain_groq import ChatGroq
+import os
+from dotenv import load_dotenv
 
 from app.config import EMBEDDING_MODEL, CHROMA_DIR
 from app.pdf_loader import load_and_split_pdf
@@ -22,6 +25,10 @@ Recommend courses or study resources only if relevant, and never pushy
 If the user hints at an upcoming exam or shows signs they might need a course, immediately offer to generate one casually (e.g., “I'll generate one RN bro 👇”)
 
 If you're unsure which exam or topic they're referring to (from memory), ask casually for clarification (e.g., “Bro yeh konsa exam tha? Bata de zara 😅”)
+
+If a topic is given to you, say , vectors, and it doesn't exist , then find the most relevant to it, like for vectors :  maths , linear algebra, physics  and suggest the user to study that first
+note that the given course should be relevant to the suggested topics, think through it first, if you can't grab the courses, you should get the most relevant courses you have , only those that align with the given topic, not any other subject
+example : "vectors padhna hai" response : "are, vectors start karna hai to mere ye generated courses pehle cover karo," and then give the links
 
 React to emotion: if the user is sad, be comforting; if excited, cheer with them; if rude, respond with dry wit — never serious or confrontational
 
@@ -57,7 +64,8 @@ User's Question:
 
 CampusBuddy's Response:
 """
-
+load_dotenv()
+api_key = os.getenv("GROQ_KEY")
 prompt = PromptTemplate(input_variables=["context", "question"], template=prompt_template)
 
 # --- Step 1: Load + Embed PDF ---
@@ -73,15 +81,14 @@ def ingest_pdf(pdf_path: str):
 # --- Step 2: RAG chain using OpenRouter GPT-4o + Summary Memory ---
 def get_qa_chain():
     vectordb = Chroma(persist_directory=CHROMA_DIR, embedding_function=EMBEDDING_MODEL)
-    retriever = vectordb.as_retriever()
+    retriever = vectordb.as_retriever(search_kwargs={"k":6})
 
-    llm = ChatOpenAI(
-        openai_api_key="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",
-        openai_api_base="https://openrouter.ai/api/v1",
-        model="openai/gpt-4o",
-        max_tokens=500,
-        temperature=0.7
-    )
+    llm = ChatGroq(
+    api_key=api_key,
+    model="deepseek-r1-distill-llama-70b",
+    max_tokens=512,  # Add this line to stay within limits
+    temperature = 0.5,
+)
 
     memory = ConversationSummaryMemory(
         llm=llm,
@@ -93,5 +100,5 @@ def get_qa_chain():
         llm=llm,
         retriever=retriever,
         memory=memory,
-        combine_docs_chain_kwargs={"prompt": prompt}
+        combine_docs_chain_kwargs={"prompt": prompt},
     )
