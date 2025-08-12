@@ -2,7 +2,7 @@ from langchain_community.vectorstores import FAISS
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationSummaryMemory
 from langchain.prompts import PromptTemplate
-from langchain_groq import ChatGroq
+from langchain.chat_models import ChatOpenAI
 import os
 from dotenv import load_dotenv
 
@@ -96,7 +96,7 @@ User's Question:
 CampusBuddy's Response (Remember to check what you've already suggested in chat history, if so, suggest a different course not the same again!!! before recommending):
 """
 load_dotenv()
-api_key = os.getenv("GROQ_KEY")
+api_key = os.getenv("OPENROUTER_KEY")
 prompt = PromptTemplate(input_variables=["context", "question"], template=prompt_template)
 
 # --- Step 1: Load + Embed PDF ---
@@ -127,12 +127,13 @@ def get_qa_chain():
         for i, doc in enumerate(docs):
             print(f"Doc {i}: {doc.page_content[:100]}...")
         return docs
-    llm = ChatGroq(
-    api_key=api_key,
-    model="moonshotai/kimi-k2-instruct",
-    max_tokens=512,  # Add this line to stay within limits
-    temperature = 0.6,
-)
+    llm = ChatOpenAI(
+        openai_api_key=api_key,
+        openai_api_base="https://openrouter.ai/api/v1",
+        model="openai/gpt-4o",
+        max_tokens=500,
+        temperature=0.7
+    )
 
     memory = ConversationSummaryMemory(
         llm=llm,
