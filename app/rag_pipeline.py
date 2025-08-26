@@ -2,7 +2,8 @@ from langchain_community.vectorstores import FAISS
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationSummaryMemory
 from langchain.prompts import PromptTemplate
-from langchain_groq import ChatGroq
+from langchain.chat_models import ChatOpenAI
+
 import os
 from dotenv import load_dotenv
 
@@ -215,11 +216,11 @@ def get_qa_chain():
         for i, doc in enumerate(docs):
             print(f"Doc {i}: {doc.page_content[:100]}...")
         return docs
-    llm = ChatGroq(
-    api_key=api_key,
-    model="moonshotai/kimi-k2-instruct",
-    max_tokens=512,  # Add this line to stay within limits
-    temperature = 0.6,
+    llm = ChatOpenAI(
+    openai_api_key=os.getenv("OPENAI_KEY"),
+    model="gpt-4o",  # or "gpt-4", "gpt-3.5-turbo"
+    max_tokens=512,
+    temperature=0.4,
 )
 
     memory = ConversationSummaryMemory(
