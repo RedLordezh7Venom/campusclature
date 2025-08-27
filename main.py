@@ -6,8 +6,7 @@ import threading
 import time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-
-app = FastAPI()
+from contextlib import asynccontextmanager
 
 # Global QA Chain instance
 qa_chain = None
@@ -25,13 +24,10 @@ def reload_pipeline():
         print(f"⚠️ {PDF_PATH} not found. RAG pipeline not loaded.")
         qa_chain = None
 
-# Initial pipeline load
-reload_pipeline()
-
 # Watchdog event handler
 class PDFHandler(FileSystemEventHandler):
     def on_modified(self, event):
-        if event.src_path == PDF_PATH:
+        if event.src_path.endswith(PDF_PATH):
             print(f"Detected change in {event.src_path}. Reloading pipeline...")
             reload_pipeline()
 
@@ -48,11 +44,20 @@ def start_watcher():
         observer.stop()
     observer.join()
 
-# Start the watcher thread when the FastAPI app starts
-@app.on_event("startup")
-async def startup_event():
+# Lifespan context for startup/shutdown
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    reload_pipeline()
     watcher_thread = threading.Thread(target=start_watcher, daemon=True)
     watcher_thread.start()
+    
+    yield  # App runs here
+
+    # Shutdown (optional cleanup can go here)
+
+# Create FastAPI app with lifespan
+app = FastAPI(lifespan=lifespan)
 
 # Request model for /ask endpoint
 class QueryRequest(BaseModel):
