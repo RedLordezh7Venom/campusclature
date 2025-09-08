@@ -5,3 +5,4 @@ openai
 chromadb
 sentence-transformers
 PyPDF2
+langchain-community
