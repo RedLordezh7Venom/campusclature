@@ -55,16 +55,16 @@ async def lifespan(app: FastAPI):
     yield  # App runs here
 
     # Shutdown (optional cleanup can go here)
-@app.get("/")
-async def root():
-    return {"message": "RAG pipeline is running. See /docs for API."}
+
 # Create FastAPI app with lifespan
 app = FastAPI(lifespan=lifespan, root_path="/api")
 
 # Request model for /ask endpoint
 class QueryRequest(BaseModel):
     query: str
-
+@app.get("/")
+async def root():
+    return {"message": "RAG pipeline is running. See /docs for API."}
 @app.post("/ask/")
 async def ask_question(request: QueryRequest):
     if qa_chain is None:
@@ -78,4 +78,5 @@ async def ask_question(request: QueryRequest):
         print("\n🧠 Conversation Summary:\n", qa_chain.memory.buffer)
 
     return {"answer": response["answer"]}
+
 
