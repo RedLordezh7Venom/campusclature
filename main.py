@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File
 from pydantic import BaseModel
 from app.rag_pipeline import ingest_pdf, get_qa_chain
 import os
@@ -65,6 +65,18 @@ class QueryRequest(BaseModel):
 @app.get("/")
 async def root():
     return {"message": "RAG pipeline is running. See /docs for API."}
+
+@app.post("/upload-pdf/")
+async def upload_pdf(file: UploadFile = File(...)):
+    try:
+        with open(PDF_PATH, "wb") as buffer:
+            buffer.write(await file.read())
+        print(f"📄 {file.filename} uploaded successfully and saved as {PDF_PATH}.")
+        # The watchdog will detect the change and reload the pipeline automatically
+        return {"message": f"File '{file.filename}' uploaded successfully. RAG pipeline will reload shortly."}
+    except Exception as e:
+        return {"error": f"Could not upload file: {e}"}
+
 @app.post("/ask/")
 async def ask_question(request: QueryRequest):
     if qa_chain is None:
@@ -78,5 +90,3 @@ async def ask_question(request: QueryRequest):
         print("\n🧠 Conversation Summary:\n", qa_chain.memory.buffer)
 
     return {"answer": response["answer"]}
-
-
