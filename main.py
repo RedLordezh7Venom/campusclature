@@ -7,6 +7,7 @@ import time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from contextlib import asynccontextmanager
+import re
 
 # Global QA Chain instance
 qa_chain = None
@@ -88,5 +89,11 @@ async def ask_question(request: QueryRequest):
     # Print the memory summary in terminal (if memory exists)
     if hasattr(qa_chain, "memory") and hasattr(qa_chain.memory, "buffer"):
         print("\n🧠 Conversation Summary:\n", qa_chain.memory.buffer)
+    pattern = r"^https://[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(/[\w\-._~:/?#[\]@!$&'()*+,;=]*)?$"
+    is_match = bool(re.match(pattern,response["answer"]))
+    if is_match:
+        return {"answer": None,"course_link":response["answer"]}
+    else:
+        return {"answer": response["answer"],"course_link":None}
 
-    return {"answer": response["answer"]}
+    
