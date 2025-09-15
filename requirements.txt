@@ -9,3 +9,4 @@ langchain-community
 watchdog
 faiss-cpu
 pypdf
+python-multipart
