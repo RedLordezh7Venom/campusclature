@@ -63,24 +63,22 @@ app = FastAPI(lifespan=lifespan, root_path="/api")
 # Request model for /ask endpoint
 class QueryRequest(BaseModel):
     query: str
+
 @app.get("/")
 async def root():
     return {"message": "RAG pipeline is running. See /docs for API."}
 
 @app.post("/upload/")
 async def upload_pdf(file: UploadFile = File(...)):
-    global qa_chain, pdf_last_modified
+    global qa_chain
 
     try:
         with open(PDF_PATH, "wb") as f:
             content = await file.read()
             f.write(content)
 
-        # Update last modified time after saving the file
-        pdf_last_modified = os.path.getmtime(PDF_PATH)
-
-        # Reload the RAG pipeline immediately
-        qa_chain = load_qa_pipeline()
+        # Reload the RAG pipeline immediately after uploading the PDF
+        reload_pipeline()
 
         print(f"📄 {file.filename} uploaded successfully and saved as {PDF_PATH}.")
         print("🔄 RAG pipeline reloaded after upload.")
@@ -100,10 +98,8 @@ async def ask_question(request: QueryRequest):
     if hasattr(qa_chain, "memory") and hasattr(qa_chain.memory, "buffer"):
         print("\n🧠 Conversation Summary:\n", qa_chain.memory.buffer)
     pattern = r"^https://[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(/[\w\-._~:/?#[\]@!$&'()*+,;=]*)?$"
-    is_match = bool(re.match(pattern,response["answer"]))
+    is_match = bool(re.match(pattern, response["answer"]))
     if is_match:
-        return {"answer": None,"course_link":response["answer"]}
+        return {"answer": None, "course_link": response["answer"]}
     else:
-        return {"answer": response["answer"],"course_link":None}
-
-    
+        return {"answer": response["answer"], "course_link": None}
