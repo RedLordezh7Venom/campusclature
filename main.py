@@ -67,14 +67,24 @@ class QueryRequest(BaseModel):
 async def root():
     return {"message": "RAG pipeline is running. See /docs for API."}
 
-@app.post("/upload-pdf/")
+@app.post("/upload/")
 async def upload_pdf(file: UploadFile = File(...)):
+    global qa_chain, pdf_last_modified
+
     try:
-        with open(PDF_PATH, "wb") as buffer:
-            buffer.write(await file.read())
+        with open(PDF_PATH, "wb") as f:
+            content = await file.read()
+            f.write(content)
+
+        # Update last modified time after saving the file
+        pdf_last_modified = os.path.getmtime(PDF_PATH)
+
+        # Reload the RAG pipeline immediately
+        qa_chain = load_qa_pipeline()
+
         print(f"📄 {file.filename} uploaded successfully and saved as {PDF_PATH}.")
-        # The watchdog will detect the change and reload the pipeline automatically
-        return {"message": f"File '{file.filename}' uploaded successfully. RAG pipeline will reload shortly."}
+        print("🔄 RAG pipeline reloaded after upload.")
+        return {"message": f"File '{file.filename}' uploaded successfully. RAG pipeline reloaded."}
     except Exception as e:
         return {"error": f"Could not upload file: {e}"}
 
@@ -97,3 +107,4 @@ async def ask_question(request: QueryRequest):
         return {"answer": response["answer"],"course_link":None}
 
     
+
