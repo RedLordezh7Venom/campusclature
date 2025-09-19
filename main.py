@@ -107,4 +107,3 @@ async def ask_question(request: QueryRequest):
         return {"answer": response["answer"],"course_link":None}
 
     
-
