@@ -26,3 +26,55 @@
 2025-11-08 13:10:53,508 - main - INFO - Shutting down RAG Pipeline Application
 2025-11-08 13:10:53,509 - main - INFO - Shutdown time: 2025-11-08 13:10:53.509099
 2025-11-08 13:10:53,509 - main - INFO - ============================================================
+2025-11-08 13:15:30,171 - app.rag_pipeline - INFO - Environment variables loaded successfully
+2025-11-08 13:15:30,171 - app.rag_pipeline - INFO - All required environment variables are present
+2025-11-08 13:15:30,172 - app.rag_pipeline - INFO - Prompt template created successfully
+2025-11-08 13:15:30,201 - main - INFO - ============================================================
+2025-11-08 13:15:30,201 - main - INFO - Starting RAG Pipeline Application
+2025-11-08 13:15:30,201 - main - INFO - Startup time: 2025-11-08 13:15:30.201891
+2025-11-08 13:15:30,202 - main - INFO - ============================================================
+2025-11-08 13:15:30,202 - main - INFO - Attempting to reload RAG pipeline from temp.pdf
+2025-11-08 13:15:30,202 - main - INFO - PDF file size: 9190 bytes
+2025-11-08 13:15:30,202 - main - INFO - Starting PDF ingestion...
+2025-11-08 13:15:30,203 - app.rag_pipeline - INFO - Starting PDF ingestion for: temp.pdf
+2025-11-08 13:15:30,203 - app.rag_pipeline - INFO - PDF file size: 9190 bytes
+2025-11-08 13:15:30,203 - app.rag_pipeline - INFO - Loading and splitting PDF...
+2025-11-08 13:15:30,504 - app.rag_pipeline - INFO - Successfully extracted 29 document chunks
+2025-11-08 13:15:30,504 - app.rag_pipeline - INFO - Creating FAISS vector store with 29 documents
+2025-11-08 13:15:31,460 - faiss.loader - INFO - Loading faiss with AVX2 support.
+2025-11-08 13:15:31,532 - faiss.loader - INFO - Successfully loaded faiss with AVX2 support.
+2025-11-08 13:15:31,543 - faiss - INFO - Failed to load GPU Faiss: name 'GpuIndexIVFFlat' is not defined. Will not load constructor refs for GPU indexes. This is only an error if you're trying to use GPU Faiss.
+2025-11-08 13:15:31,546 - app.rag_pipeline - INFO - Vector store created successfully
+2025-11-08 13:15:31,546 - app.rag_pipeline - INFO - Ensured FAISS directory exists: faiss_index
+2025-11-08 13:15:31,547 - app.rag_pipeline - INFO - Saving vector store to: faiss_index
+2025-11-08 13:15:31,551 - app.rag_pipeline - INFO - PDF ingestion completed successfully
+2025-11-08 13:15:31,551 - main - INFO - PDF ingestion completed successfully
+2025-11-08 13:15:31,551 - main - INFO - Initializing QA chain...
+2025-11-08 13:15:31,551 - app.rag_pipeline - INFO - Initializing QA chain...
+2025-11-08 13:15:31,552 - app.rag_pipeline - INFO - Loading FAISS vector store from: faiss_index
+2025-11-08 13:15:31,586 - app.rag_pipeline - INFO - FAISS vector store loaded successfully
+2025-11-08 13:15:31,586 - app.rag_pipeline - INFO - Configuring retriever with MMR search strategy
+2025-11-08 13:15:31,586 - app.rag_pipeline - INFO - Retriever configured successfully
+2025-11-08 13:15:31,587 - app.rag_pipeline - INFO - Initializing ChatOpenAI LLM
+2025-11-08 13:15:34,113 - app.rag_pipeline - INFO - LLM initialized successfully
+2025-11-08 13:15:34,114 - app.rag_pipeline - INFO - Initializing conversation memory
+2025-11-08 13:15:34,115 - app.rag_pipeline - INFO - Conversation memory initialized successfully
+2025-11-08 13:15:34,115 - app.rag_pipeline - INFO - Creating ConversationalRetrievalChain
+2025-11-08 13:15:34,116 - app.rag_pipeline - INFO - QA chain created successfully
+2025-11-08 13:15:34,116 - main - INFO - QA chain initialized successfully
+2025-11-08 13:15:34,116 - main - INFO - ✅ RAG pipeline reloaded successfully
+2025-11-08 13:15:34,117 - main - INFO - Starting watcher thread...
+2025-11-08 13:15:34,118 - main - INFO - Starting file system watcher...
+2025-11-08 13:15:34,118 - main - INFO - Watcher thread started successfully
+2025-11-08 13:15:34,120 - main - INFO - File system watcher started successfully
+2025-11-08 13:15:39,594 - main - INFO - Received question: I want to study hindi s
+2025-11-08 13:15:39,594 - main - INFO - Invoking QA chain...
+2025-11-08 13:15:41,562 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-11-08 13:15:42,430 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-11-08 13:15:42,448 - main - INFO - QA chain invoked successfully
+2025-11-08 13:15:42,448 - main - INFO - Conversation Summary: The human expresses a desire to study Hindi. The AI provides a link to a Hindi course on Campus Clature.
+2025-11-08 13:15:42,449 - main - INFO - Response is a course link: https://campusclature.com/courses/hindi-7-x10
+2025-11-08 13:15:53,590 - main - INFO - ============================================================
+2025-11-08 13:15:53,590 - main - INFO - Shutting down RAG Pipeline Application
+2025-11-08 13:15:53,590 - main - INFO - Shutdown time: 2025-11-08 13:15:53.590642
+2025-11-08 13:15:53,590 - main - INFO - ============================================================
