@@ -1,0 +1,28 @@
+2025-11-08 13:09:50,726 - main - INFO - ============================================================
+2025-11-08 13:09:50,727 - main - INFO - Starting RAG Pipeline Application
+2025-11-08 13:09:50,727 - main - INFO - Startup time: 2025-11-08 13:09:50.727725
+2025-11-08 13:09:50,727 - main - INFO - ============================================================
+2025-11-08 13:09:50,728 - main - INFO - Attempting to reload RAG pipeline from temp.pdf
+2025-11-08 13:09:50,728 - main - INFO - PDF file size: 9190 bytes
+2025-11-08 13:09:50,728 - main - INFO - Starting PDF ingestion...
+2025-11-08 13:09:52,008 - faiss.loader - INFO - Loading faiss with AVX2 support.
+2025-11-08 13:09:52,078 - faiss.loader - INFO - Successfully loaded faiss with AVX2 support.
+2025-11-08 13:09:52,091 - faiss - INFO - Failed to load GPU Faiss: name 'GpuIndexIVFFlat' is not defined. Will not load constructor refs for GPU indexes. This is only an error if you're trying to use GPU Faiss.
+2025-11-08 13:09:52,098 - main - INFO - PDF ingestion completed successfully
+2025-11-08 13:09:52,098 - main - INFO - Initializing QA chain...
+2025-11-08 13:09:54,965 - main - INFO - QA chain initialized successfully
+2025-11-08 13:09:55,289 - main - INFO - Starting watcher thread...
+2025-11-08 13:09:55,291 - main - INFO - Starting file system watcher...
+2025-11-08 13:09:55,291 - main - INFO - Watcher thread started successfully
+2025-11-08 13:09:55,295 - main - INFO - File system watcher started successfully
+2025-11-08 13:10:14,921 - main - INFO - Received question: I want to study hindi s
+2025-11-08 13:10:14,921 - main - INFO - Invoking QA chain...
+2025-11-08 13:10:16,705 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-11-08 13:10:17,494 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-11-08 13:10:17,496 - main - INFO - QA chain invoked successfully
+2025-11-08 13:10:17,497 - main - INFO - Conversation Summary: The human expresses a desire to study Hindi. The AI provides a link to a course on Campusclature for learning Hindi.
+2025-11-08 13:10:17,497 - main - INFO - Response is a course link: https://campusclature.com/courses/hindi-7-x10
+2025-11-08 13:10:53,508 - main - INFO - ============================================================
+2025-11-08 13:10:53,508 - main - INFO - Shutting down RAG Pipeline Application
+2025-11-08 13:10:53,509 - main - INFO - Shutdown time: 2025-11-08 13:10:53.509099
+2025-11-08 13:10:53,509 - main - INFO - ============================================================
